@@ -20,19 +20,26 @@ from django.urls import path
 
 from django.http import HttpResponse
 
-def log(request):
-       # 1.导入
-       import logging
-       # 2. 创建日志器
-       logger = logging.getLogger("django")
-       # 3. 调试日志器的方法保存日志
-       logger.info("用户登陆了")
-       logger.warning("redis缓存不足")
-       logger.error("该记录不存在")
-       logger.debug("~~~~~~~")
-       return HttpResponse("Hello world")
+from django.urls import register_converter,include
+from utils.converters import UsernameConverter
+
+register_converter(UsernameConverter, 'username')
+
+# def log(request):
+#        # 1.导入
+#        import logging
+#        # 2. 创建日志器
+#        logger = logging.getLogger("django")
+#        # 3. 调试日志器的方法保存日志
+#        logger.info("用户登陆了")
+#        logger.warning("redis缓存不足")
+#        logger.error("该记录不存在")
+#        logger.debug("~~~~~~~")
+#        return HttpResponse("Hello world")
 
 urlpatterns = [
        path("admin/", admin.site.urls),
-       path("log/", log),
+       # path("log/", log),
+       path("", include("apps.users.urls")),
+
 ]
