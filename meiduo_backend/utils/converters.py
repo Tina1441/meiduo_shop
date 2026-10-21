@@ -9,3 +9,12 @@ class UsernameConverter:
     def to_url(self, value):
         # 将 Python 对象转换为 URL 中使用的字符串
         return str(value)
+
+from django.urls import converters
+
+class MobileConverter:
+    regex = r"1[3-9]\d{9}"
+    def to_python(self, value):
+        return value
+    def to_url(self, value):
+        return value
