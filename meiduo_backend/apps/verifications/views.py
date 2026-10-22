@@ -41,7 +41,7 @@ class SendMessageView(View):
 
         from random import randint
         sms_code = '%04d'%randint(0,9999)
-        redis_cli.setex(uuid,timedelta(seconds=300),sms_code)
+        redis_cli.setex(mobile,timedelta(seconds=300),sms_code)
 
         from libs.yuntongxun.sms import CCP
         CCP().send_template_sms(mobile,[sms_code,'5'],1)

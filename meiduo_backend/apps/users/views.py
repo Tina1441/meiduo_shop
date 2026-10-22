@@ -61,6 +61,13 @@ class RegisterView(View):
             return JsonResponse({'code': 0, 'errmsg': '该手机号已存在，请重新输入'})
         if password != password2:
             return JsonResponse({'code': 0, 'errmsg': '两次输入的密码不一致，请重新输入'})
+        from django_redis import get_redis_connection
+        redis_cli = get_redis_connection('code')
+        redis_message_code = redis_cli.get(mobile)
+        if not redis_message_code:
+            return JsonResponse({'code': 400, 'errmsg': '短信验证码失效'})
+        if redis_message_code.decode() != sms_code:
+            return JsonResponse({'code': 400, 'errmsg': '短信验证码不正确'})
 
         user = User.objects.create_user(
             username=username,
