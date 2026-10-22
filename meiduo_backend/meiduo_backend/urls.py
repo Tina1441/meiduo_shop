@@ -52,5 +52,6 @@ urlpatterns = [
        path("log/", log),
        path("", include("apps.users.urls")),
        path("", include("apps.verifications.urls")),
+       path("",include("apps.OAuth.urls")),
 
 ]
