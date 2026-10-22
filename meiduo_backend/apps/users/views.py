@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 import json
 from datetime import timedelta
+import re
 # Create your views here.
 
 '''
@@ -110,6 +111,13 @@ class LoginView(View):
            return JsonResponse({'code':400,'errmsg':'参数不全'})
 
        from django.contrib.auth import authenticate,login
+
+    # 修改 USERNAME_FIELD 字段来修改authenticate查询
+       if re.match("1[3-9]\d{9}",username):
+           User.USERNAME_FIELD = "mobile"
+       else:
+           User.USERNAME_FIELD = "username"
+
 
        user = authenticate(username=username, password=password)
        if not user:
