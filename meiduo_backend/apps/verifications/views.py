@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views import View
 from libs.captcha.captcha import captcha
@@ -13,6 +13,39 @@ class ImageCodeView(View):
         text,image = captcha.generate_captcha()
         # 3?? ????redis
         redis_cli = get_redis_connection('code')
-        redis_cli.set(uuid,text,timedelta(seconds=120),)
+        redis_cli.setex(uuid,timedelta(seconds=120),text)
         # 4. ??????????????????
         return HttpResponse(image,content_type='image/jpeg')
+
+
+# 1. 接受请求 获取请求参数： 手机号 图片验证码 uuid
+# 2. 验证图片验证码
+# 3. 生成短信验证码
+# 4. 保存短信验证码
+# 5. 发送短信验证码
+# 6. 返回响应
+class SendMessageView(View):
+    def get(self,request,mobile):
+        uuid = request.GET.get("image_code_id")
+        image_code = request.GET.get("image_code")
+
+        if not all([uuid,image_code]):
+            return JsonResponse({'code':400,'errmsg':'参数不全'})
+
+        redis_cli = get_redis_connection('code')
+        redis_image_code = redis_cli.get(uuid)
+        if not redis_image_code:
+            return JsonResponse({'code':400,'errmsg':'图片验证码已过期'})
+        if redis_image_code.decode() != image_code:
+            return JsonResponse({'code':400,'errmsg':'图片验证码错误'})
+
+        from random import randint
+        sms_code = '%04d'%randint(0,9999)
+        redis_cli.setex(uuid,timedelta(seconds=300),sms_code)
+
+        from libs.yuntongxun.sms import CCP
+        CCP().send_template_sms(mobile,[sms_code,'5'],1)
+
+        return JsonResponse({'code':0,'errmsg':'ok'})
+
+

@@ -354,147 +354,147 @@ class REST:
                 self.log(url, body, data)
             return {'172001': '网络错误'}
 
-    # def sendTemplateSMS(self, to, datas, tempId):
-    #     """发送模板短信，并打印详细异常信息"""
-    #
-    #     # 生成时间戳
-    #     nowdate = datetime.datetime.now()
-    #     self.Batch = nowdate.strftime("%Y%m%d%H%M%S")
-    #
-    #     # 生成签名
-    #     signature = self.AccountSid + self.AccountToken + self.Batch
-    #     sig = md5(signature.encode("utf-8")).hexdigest().upper()
-    #
-    #     # 拼接请求 URL
-    #     url = (
-    #             "https://" + self.ServerIP + ":" + self.ServerPort
-    #             + "/" + self.SoftVersion
-    #             + "/Accounts/" + self.AccountSid
-    #             + "/SMS/TemplateSMS?sig=" + sig
-    #     )
-    #
-    #     # 生成 Authorization
-    #     src = self.AccountSid + ":" + self.Batch
-    #     auth = base64.encodebytes(src.encode("utf-8")).decode("utf-8").strip()
-    #
-    #     # 创建请求
-    #     req = urllib2.Request(url)
-    #     self.setHttpHeader(req)
-    #     req.add_header("Authorization", auth)
-    #
-    #     # 构造请求包体
-    #     body = (
-    #                '<?xml version="1.0" encoding="utf-8"?>'
-    #                '<SubAccount>'
-    #                '<appId>%s</appId>'
-    #                '<to>%s</to>'
-    #                '<templateId>%s</templateId>'
-    #                '<datas>%s</datas>'
-    #                '</SubAccount>'
-    #            ) % (
-    #                self.AppId,
-    #                to,
-    #                tempId,
-    #                "".join("<data>%s</data>" % item for item in datas)
-    #            )
-    #
-    #     # 如果使用 JSON 格式
-    #     if self.BodyType == "json":
-    #         body = json.dumps({
-    #             "appId": self.AppId,
-    #             "to": to,
-    #             "templateId": tempId,
-    #             "datas": datas
-    #         }, ensure_ascii=False)
-    #
-    #     req.data = body.encode("utf-8")
-    #     data = b""
-    #
-    #     try:
-    #         print("开始请求容联云通讯短信接口")
-    #         print("服务器:", self.ServerIP)
-    #         print("端口:", self.ServerPort)
-    #         print("API 版本:", self.SoftVersion)
-    #         print("请求格式:", self.BodyType)
-    #         print("短信模板 ID:", tempId)
-    #         print("手机号:", str(to)[:3] + "****" + str(to)[-4:])
-    #
-    #         print("urllib2:", urllib2)
-    #         print("模块路径:", urllib2.__file__)
-    #         print("请求 URL:", req.full_url)
-    #         print("请求类型:", type(req))
-    #         print("URL scheme:", req.type)
-    #         print("默认 opener:", urllib2._opener)
-    #
-    #         # 发送请求
-    #         # 检查 urllib.request 实际注册了哪些处理器
-    #         opener = urllib2.build_opener()
-    #
-    #         print("已注册的 URL 处理器：")
-    #         for handler in opener.handlers:
-    #             print(" ", type(handler).__name__)
-    #
-    #         print("Request 类型:", type(req))
-    #         print("Request URL:", req.full_url)
-    #         print("Request scheme:", req.type)
-    #
-    #         # 显式创建 HTTPS 处理器，进行请求
-    #         https_opener = urllib2.build_opener(urllib2.HTTPSHandler())
-    #
-    #         print("显式 HTTPS 处理器：")
-    #         for handler in https_opener.handlers:
-    #             print(" ", type(handler).__name__)
-    #
-    #         with https_opener.open(req, timeout=15) as res:
-    #             data = res.read()
-    #
-    #         # 解析响应
-    #         if self.BodyType == "json":
-    #             locations = json.loads(data.decode("utf-8"))
-    #         else:
-    #             xtj = xmltojson()
-    #             locations = xtj.main(data)
-    #
-    #         if self.Iflog:
-    #             self.log(url, body, data)
-    #
-    #         print("云通讯响应:", locations)
-    #         return locations
-    #
-    #     except HTTPError as error:
-    #         # HTTP 错误：例如 400、401、403、404、500
-    #         print("HTTP 请求失败")
-    #         print("HTTP 状态码:", error.code)
-    #         print("HTTP 原因:", error.reason)
-    #
-    #         try:
-    #             response_body = error.read().decode(
-    #                 "utf-8", errors="replace"
-    #             )
-    #             print("服务端响应:", response_body)
-    #         except Exception as read_error:
-    #             print("读取服务端响应失败:", repr(read_error))
-    #
-    #         traceback.print_exc()
-    #         return {"172001": "HTTP请求错误"}
-    #
-    #     except URLError as error:
-    #         # URL、连接、SSL 等请求错误
-    #         print("URL 请求失败")
-    #         print("异常详情:", repr(error))
-    #         print("底层原因:", repr(getattr(error, "reason", None)))
-    #
-    #         traceback.print_exc()
-    #         return {"172001": "URL请求错误"}
-    #
-    #     except Exception as error:
-    #         # JSON/XML 解析错误或其他 Python 异常
-    #         print("短信请求发生其他异常")
-    #         print("异常类型:", type(error).__name__)
-    #         print("异常详情:", repr(error))
-    #
-    #         traceback.print_exc()
-    #         return {"172001": "其他请求错误"}
+    def sendTemplateSMS(self, to, datas, tempId):
+        """发送模板短信，并打印详细异常信息"""
+
+        # 生成时间戳
+        nowdate = datetime.datetime.now()
+        self.Batch = nowdate.strftime("%Y%m%d%H%M%S")
+
+        # 生成签名
+        signature = self.AccountSid + self.AccountToken + self.Batch
+        sig = md5(signature.encode("utf-8")).hexdigest().upper()
+
+        # 拼接请求 URL
+        url = (
+                "https://" + self.ServerIP + ":" + self.ServerPort
+                + "/" + self.SoftVersion
+                + "/Accounts/" + self.AccountSid
+                + "/SMS/TemplateSMS?sig=" + sig
+        )
+
+        # 生成 Authorization
+        src = self.AccountSid + ":" + self.Batch
+        auth = base64.encodebytes(src.encode("utf-8")).decode("utf-8").strip()
+
+        # 创建请求
+        req = urllib2.Request(url)
+        self.setHttpHeader(req)
+        req.add_header("Authorization", auth)
+
+        # 构造请求包体
+        body = (
+                   '<?xml version="1.0" encoding="utf-8"?>'
+                   '<SubAccount>'
+                   '<appId>%s</appId>'
+                   '<to>%s</to>'
+                   '<templateId>%s</templateId>'
+                   '<datas>%s</datas>'
+                   '</SubAccount>'
+               ) % (
+                   self.AppId,
+                   to,
+                   tempId,
+                   "".join("<data>%s</data>" % item for item in datas)
+               )
+
+        # 如果使用 JSON 格式
+        if self.BodyType == "json":
+            body = json.dumps({
+                "appId": self.AppId,
+                "to": to,
+                "templateId": tempId,
+                "datas": datas
+            }, ensure_ascii=False)
+
+        req.data = body.encode("utf-8")
+        data = b""
+
+        try:
+            print("开始请求容联云通讯短信接口")
+            print("服务器:", self.ServerIP)
+            print("端口:", self.ServerPort)
+            print("API 版本:", self.SoftVersion)
+            print("请求格式:", self.BodyType)
+            print("短信模板 ID:", tempId)
+            print("手机号:", str(to)[:3] + "****" + str(to)[-4:])
+
+            print("urllib2:", urllib2)
+            print("模块路径:", urllib2.__file__)
+            print("请求 URL:", req.full_url)
+            print("请求类型:", type(req))
+            print("URL scheme:", req.type)
+            print("默认 opener:", urllib2._opener)
+
+            # 发送请求
+            # 检查 urllib.request 实际注册了哪些处理器
+            opener = urllib2.build_opener()
+
+            print("已注册的 URL 处理器：")
+            for handler in opener.handlers:
+                print(" ", type(handler).__name__)
+
+            print("Request 类型:", type(req))
+            print("Request URL:", req.full_url)
+            print("Request scheme:", req.type)
+
+            # 显式创建 HTTPS 处理器，进行请求
+            https_opener = urllib2.build_opener(urllib2.HTTPSHandler())
+
+            print("显式 HTTPS 处理器：")
+            for handler in https_opener.handlers:
+                print(" ", type(handler).__name__)
+
+            with https_opener.open(req, timeout=15) as res:
+                data = res.read()
+
+            # 解析响应
+            if self.BodyType == "json":
+                locations = json.loads(data.decode("utf-8"))
+            else:
+                xtj = xmltojson()
+                locations = xtj.main(data)
+
+            if self.Iflog:
+                self.log(url, body, data)
+
+            print("云通讯响应:", locations)
+            return locations
+
+        except HTTPError as error:
+            # HTTP 错误：例如 400、401、403、404、500
+            print("HTTP 请求失败")
+            print("HTTP 状态码:", error.code)
+            print("HTTP 原因:", error.reason)
+
+            try:
+                response_body = error.read().decode(
+                    "utf-8", errors="replace"
+                )
+                print("服务端响应:", response_body)
+            except Exception as read_error:
+                print("读取服务端响应失败:", repr(read_error))
+
+            traceback.print_exc()
+            return {"172001": "HTTP请求错误"}
+
+        except URLError as error:
+            # URL、连接、SSL 等请求错误
+            print("URL 请求失败")
+            print("异常详情:", repr(error))
+            print("底层原因:", repr(getattr(error, "reason", None)))
+
+            traceback.print_exc()
+            return {"172001": "URL请求错误"}
+
+        except Exception as error:
+            # JSON/XML 解析错误或其他 Python 异常
+            print("短信请求发生其他异常")
+            print("异常类型:", type(error).__name__)
+            print("异常详情:", repr(error))
+
+            traceback.print_exc()
+            return {"172001": "其他请求错误"}
 
     # 外呼通知
     # @param to 必选参数    被叫号码
