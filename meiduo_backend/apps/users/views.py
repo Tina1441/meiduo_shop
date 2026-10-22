@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from django.shortcuts import render
 import json
+from datetime import timedelta
 # Create your views here.
 
 '''
@@ -88,4 +89,39 @@ class RegisterView(View):
             'code': 0,
             'errmsg': '注册成功'
         })
+
+
+# 1. 接收参数
+# 2. 验证参数
+# 3. 验证用户和密码是否正确
+# 4. session
+# 5. 判断是否记住登录
+# 6. 返回响应
+
+
+class LoginView(View):
+    def post(self,request):
+       data = json.loads(request.body.decode())
+       username = data.get('username')
+       password = data.get('password')
+       remembered = data.get('remembered') # 记住登录（十天内免登录）
+
+       if not all([username,password]):
+           return JsonResponse({'code':400,'errmsg':'参数不全'})
+
+       from django.contrib.auth import authenticate,login
+
+       user = authenticate(username=username, password=password)
+       if not user:
+           return JsonResponse({'code':400,'errmsg':'账号或密码错误'})
+       if remembered:
+           # 记住登录（2周）默认
+           request.session.set_expiry(timedelta(days=7))
+
+       else:
+           # 不记住登录
+           login(request,user)
+           request.session.set_expiry(0)  # 浏览器关闭过期
+
+       return JsonResponse({'code':0,'errmsg':'ok'})
 
