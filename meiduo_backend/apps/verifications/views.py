@@ -45,9 +45,14 @@ class SendMessageView(View):
 
         from random import randint
         sms_code = '%04d'%randint(0,9999)
-        redis_cli.setex(mobile,timedelta(seconds=300),sms_code)
 
-        redis_cli.setex('send_flag_%s'%mobile,timedelta(seconds=480),1)
+        pipeline = redis_cli.pipeline()
+
+        pipeline.setex(mobile,timedelta(seconds=300),sms_code)
+
+        pipeline.setex('send_flag_%s'%mobile,timedelta(seconds=480),1)
+
+        pipeline.execute()
 
         from libs.yuntongxun.sms import CCP
         CCP().send_template_sms(mobile,[sms_code,'5'],1)
