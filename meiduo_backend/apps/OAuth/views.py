@@ -1,3 +1,5 @@
+from http.client import responses
+
 from QQLoginTool.QQtool import OAuthQQ
 from django.contrib.auth import login
 from django.shortcuts import render
@@ -5,6 +7,8 @@ from django.views import View
 from meiduo_backend.settings import QQ_CLIENT_ID, QQ_CLIENT_SECRET, QQ_REDIRECT_URI
 from django.http import JsonResponse
 from apps.OAuth.models import OAuthQQUser
+from apps.users.models import User
+import json
 
 # Create your views here.
 """
@@ -105,6 +109,31 @@ class QQLoginURLView(View):
 
 """
 
+"""
+需求： 绑定账号信息
+
+    QQ(openid) 和 美多的账号信息
+
+前端：
+        当用户输入 手机号，密码，短信验证码之后就发送axios请求。请求需要携带 mobile,password,sms_code,access_token(openid)
+后端：
+
+    请求：         接收请求，获取请求参数
+    业务逻辑：       绑定，完成状态保持
+    响应：         返回code=0 跳转到首页
+    路由：          POST   oauth_callback/
+    步骤：
+
+            1. 接收请求
+            2. 获取请求参数  openid
+            3. 根据手机号进行用户信息的查询
+            4. 查询到用户手机号已经注册了。判断密码是否正确。密码正确就可以直接保存（绑定） 用户和openid信息
+            5. 查询到用户手机号没有注册。我们就创建一个user信息。然后再绑定
+            6. 完成状态保持
+            7. 返回响应
+
+"""
+
 class OAuthQQView(View):
     def get(self, request):
         code = request.GET.get('code')
@@ -126,7 +155,8 @@ class OAuthQQView(View):
         except OAuthQQUser.DoesNotExist:
             # from apps.OAuth.utils import generic_openid
             # access_token = generic_openid(openid)
-            return JsonResponse({'code':400,'access_token':token})
+            response =  JsonResponse({'code':400,'access_token':openid})
+            return response
         else:
             login(request, qquser.user)
 
@@ -137,11 +167,59 @@ class OAuthQQView(View):
             return response
 
 
+
+
         # 5. 如果没有绑定过，则需要绑定
         # 6. 如果绑定过，则直接登录
 
         pass
 
+
+    def post(self, request):
+
+
+
+        # 4.查询到用户手机号已经注册了。判断密码是否正确。密码正确就可以直接保存（绑定） 用户和openid信息
+        # 5.查询到用户手机号没有注册。我们就创建一个user信息。然后再绑定
+        # 6.完成状态保持
+        # 7.返回响应
+        # 1.接收请求
+        data = json.loads(request.body.decode())
+        # 2.获取请求参数openid
+        mobile=data.get('mobile')
+        password=data.get('password')
+        sms_code=data.get('sms_code')
+        openid=data.get('access_token')
+
+        # 添加对 access-token 解密
+        # from apps.OAuth.utils import check_access_token
+        # openid=check_access_token(access_token)
+        # if openid is None:
+        #     return JsonResponse({'code':400,'errmsg':'参数缺失'})
+
+        # 3.根据手机号进行用户信息的查询
+        try:
+            user=User.objects.get(mobile=mobile)
+        except User.DoesNotExist:
+            #手机号不存在
+            # 5. 查询到用户手机号没有注册。我们就创建一个user信息。然后再绑定
+            user=User.objects.create_user(username=mobile,mobile=mobile,password=password)
+
+        else:
+            #手机号存在
+            # 4. 查询到用户手机号已经注册了。判断密码是否正确。密码正确就可以直接保存（绑定） 用户和openid信息
+            if not user.check_password(password):
+                return JsonResponse({'code':400,'errmsg':'账号或密码错误'})
+        OAuthQQUser.objects.create(user=user,openid=openid)
+
+        # 6. 完成状态保持
+        login(request,user)
+        # 7. 返回响应
+        response=JsonResponse({'code':0,'errmsg':'ok'})
+
+        response.set_cookie('username',user.username)
+
+        return response
 
 
 
