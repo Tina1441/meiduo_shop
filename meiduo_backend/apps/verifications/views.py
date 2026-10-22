@@ -54,8 +54,11 @@ class SendMessageView(View):
 
         pipeline.execute()
 
-        from libs.yuntongxun.sms import CCP
-        CCP().send_template_sms(mobile,[sms_code,'5'],1)
+        # from libs.yuntongxun.sms import CCP
+        # CCP().send_template_sms(mobile,[sms_code,'5'],1)
+
+        from celery_tasks.sms.tasks import celery_send_sms
+        celery_send_sms.delay(mobile,sms_code)
 
         return JsonResponse({'code':0,'errmsg':'ok'})
 

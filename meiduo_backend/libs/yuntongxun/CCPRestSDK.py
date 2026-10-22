@@ -419,29 +419,29 @@ class REST:
             print("短信模板 ID:", tempId)
             print("手机号:", str(to)[:3] + "****" + str(to)[-4:])
 
-            print("urllib2:", urllib2)
-            print("模块路径:", urllib2.__file__)
-            print("请求 URL:", req.full_url)
-            print("请求类型:", type(req))
-            print("URL scheme:", req.type)
-            print("默认 opener:", urllib2._opener)
+            # print("urllib2:", urllib2)
+            # print("模块路径:", urllib2.__file__)
+            # print("请求 URL:", req.full_url)
+            # print("请求类型:", type(req))
+            # print("URL scheme:", req.type)
+            # print("默认 opener:", urllib2._opener)
 
             # 发送请求
             # 检查 urllib.request 实际注册了哪些处理器
             opener = urllib2.build_opener()
 
-            print("已注册的 URL 处理器：")
+            # print("已注册的 URL 处理器：")
             for handler in opener.handlers:
                 print(" ", type(handler).__name__)
 
-            print("Request 类型:", type(req))
-            print("Request URL:", req.full_url)
-            print("Request scheme:", req.type)
+            # print("Request 类型:", type(req))
+            # print("Request URL:", req.full_url)
+            # print("Request scheme:", req.type)
 
             # 显式创建 HTTPS 处理器，进行请求
             https_opener = urllib2.build_opener(urllib2.HTTPSHandler())
 
-            print("显式 HTTPS 处理器：")
+            # print("显式 HTTPS 处理器：")
             for handler in https_opener.handlers:
                 print(" ", type(handler).__name__)
 
