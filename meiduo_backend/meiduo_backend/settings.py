@@ -213,3 +213,6 @@ CORS_ORIGIN_WHITELIST = (
     'http://www.meiduo.site:8000'
 )
 CORS_ALLOW_CREDENTIALS = True  # 允许携带cookie
+
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SECURE = False

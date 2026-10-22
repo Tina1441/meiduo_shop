@@ -38,10 +38,9 @@ class MobileView(View):
 
 class RegisterView(View):
     def post(self, request):
-        # 1.接收数据
-        body = request.body
-        body_str = body.decode('utf-8')
-        body_dict = json.loads(body_str)
+        print("========== 进入 RegisterView ==========", flush=True)
+
+        body_dict = json.loads(request.body.decode('utf-8'))
 
         username = body_dict.get('username')
         password = body_dict.get('password')
@@ -49,23 +48,37 @@ class RegisterView(View):
         mobile = body_dict.get('mobile')
         sms_code = body_dict.get('sms_code')
         allow = body_dict.get('allow')
+
         # 2.验证数据
         if not all([username, password, password2, mobile, sms_code, allow]):
-            return JsonResponse({'code':0,'errmsg':'注册信息不全'})
+            return JsonResponse({'code': 0, 'errmsg': '注册信息不全'})
         user_count = User.objects.filter(mobile=mobile).count()
         mobile_count = User.objects.filter(mobile=mobile).count()
 
         if user_count:
-            return JsonResponse({'code':0,'errmsg':'用户名已存在，请重新输入'})
+            return JsonResponse({'code': 0, 'errmsg': '用户名已存在，请重新输入'})
         if mobile_count:
-            return JsonResponse({'code':0,'errmsg':'该手机号已存在，请重新输入'})
+            return JsonResponse({'code': 0, 'errmsg': '该手机号已存在，请重新输入'})
         if password != password2:
-            return JsonResponse({'code':0,'errmsg':'两次输入的密码不一致，请重新输入'})
+            return JsonResponse({'code': 0, 'errmsg': '两次输入的密码不一致，请重新输入'})
 
-        # 3.数据入库
-        user = User.objects.create_user(username=username, password=password, mobile=mobile)
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            mobile=mobile
+        )
 
+        print("========== 用户创建成功 ==========", flush=True)
 
-        # 4.返回响应
-        return JsonResponse({'code': 0, 'errmsg': '注册成功'})
+        from django.contrib.auth import login
+        login(request, user)
+
+        print("========== login 执行完成 ==========", flush=True)
+        print("session_key:", request.session.session_key, flush=True)
+        print("user_id:", request.session.get('_auth_user_id'), flush=True)
+
+        return JsonResponse({
+            'code': 0,
+            'errmsg': '注册成功'
+        })
 
