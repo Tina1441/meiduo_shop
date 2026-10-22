@@ -1,8 +1,10 @@
 from QQLoginTool.QQtool import OAuthQQ
+from django.contrib.auth import login
 from django.shortcuts import render
 from django.views import View
 from meiduo_backend.settings import QQ_CLIENT_ID, QQ_CLIENT_SECRET, QQ_REDIRECT_URI
 from django.http import JsonResponse
+from apps.OAuth.models import OAuthQQUser
 
 # Create your views here.
 """
@@ -78,5 +80,69 @@ class QQLoginURLView(View):
         qq_login_url=QQ.get_qq_url()
         # 3. 返回响应
         return JsonResponse({'code':0,'errmsg':'ok','login_url':qq_login_url})
+
+"""
+
+需求： 获取code，通过code换取token，再通过token换取openid
+
+前端：
+        应该获取 用户同意登录的code。把这个code发送给后端
+后端：
+    请求          获取code
+    业务逻辑       通过code换取token，再通过token换取openid
+                根据openid进行判断
+                如果没有绑定过，则需要绑定
+                如果绑定过，则直接登录
+    响应          
+    路由          GET         oauth_callback/?code=xxxxx
+    步骤
+        1. 获取code
+        2. 通过code换取token
+        3. 再通过token换取openid
+        4. 根据openid进行判断
+        5. 如果没有绑定过，则需要绑定
+        6. 如果绑定过，则直接登录
+
+"""
+
+class OAuthQQView(View):
+    def get(self, request):
+        code = request.GET.get('code')
+        # 'C717662259BA345A6AE9CB1F7A9FDA1A'  每次不同
+        if not code:
+            return JsonResponse({'code':400,'errmsg':'参数不全'})
+        QQ = OAuthQQ(client_id=QQ_CLIENT_ID,
+                     client_secret=QQ_CLIENT_SECRET,
+                     redirect_uri=QQ_REDIRECT_URI,
+                     state='xxxxxx')
+        token = QQ.get_access_token(code)
+        # '9A96015A7C9769199CBE0AD110893CCB' 每次不同
+        openid = QQ.get_open_id(token)
+        # '7E90E148BA388D68066A9779C9CF109D' 同一账号每次相同
+
+        # 4. 根据openid进行判断
+        try:
+            qquser = OAuthQQUser.objects.get(openid=openid)
+        except OAuthQQUser.DoesNotExist:
+            # from apps.OAuth.utils import generic_openid
+            # access_token = generic_openid(openid)
+            return JsonResponse({'code':400,'access_token':token})
+        else:
+            login(request, qquser.user)
+
+            response =  JsonResponse({'code':0,'errmsg':'ok'})
+
+            response.set_cookie('username',qquser.user.username)
+
+            return response
+
+
+        # 5. 如果没有绑定过，则需要绑定
+        # 6. 如果绑定过，则直接登录
+
+        pass
+
+
+
 
 
