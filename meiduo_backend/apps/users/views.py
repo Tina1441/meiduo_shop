@@ -123,13 +123,15 @@ class LoginView(View):
        user = authenticate(username=username, password=password)
        if not user:
            return JsonResponse({'code':400,'errmsg':'账号或密码错误'})
+
+       login(request, user)
+
        if remembered:
            # 记住登录（2周）默认
            request.session.set_expiry(timedelta(days=7))
 
        else:
            # 不记住登录
-           login(request,user)
            request.session.set_expiry(0)  # 浏览器关闭过期
 
        response = JsonResponse({'code':0,'errmsg':'ok'})
@@ -148,6 +150,11 @@ class LogOutView(View):
         response.delete_cookie('username')
 
         return response
+
+from utils.views import LoginRequiredJSONMixin
+class CenterView(LoginRequiredJSONMixin, View):
+    def get(self,request):
+        return JsonResponse({'code':0,'errmsg':'ok'})
 
 
 
