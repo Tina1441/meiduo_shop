@@ -3,6 +3,7 @@ from django.shortcuts import render
 import json
 from datetime import timedelta
 import re
+from django.contrib.auth import logout
 # Create your views here.
 
 '''
@@ -137,4 +138,16 @@ class LoginView(View):
 
 
        return response
+
+class LogOutView(View):
+    def delete(self,request):
+        # 删除sessionID信息
+        logout(request)
+        response = JsonResponse({'code':0,'errmsg':'ok'})
+        # 删除Cookie中的username信息 前端展示
+        response.delete_cookie('username')
+
+        return response
+
+
 
