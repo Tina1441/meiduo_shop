@@ -169,38 +169,55 @@ class CenterView(LoginRequiredJSONMixin, View):
 
 class EmailView(LoginRequiredJSONMixin,View):
     def put(self,request):
-        # 获取邮箱
+        # 1. 获取邮箱
         data = json.loads(request.body.decode())
         email = data.get('email')
         # 验证邮箱
         if not re.match("^[a-z0-9][\w\.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$",email):
             return JsonResponse({'code':400,'errmsg':'邮箱格式不正确'})
-        # 保存邮箱
+        # 2. 保存邮箱
         user = request.user
         user.email = email
         user.save()
-        # 发送激活邮件
+        # 3. 发送激活邮件
         from django.core.mail import send_mail
-        subject = "美多商城激活邮件"
-        # 1. 准备纯文本正文（给不支持HTML的邮箱看）
-        message = "尊敬的用户，请点击以下链接激活账号：http://www.itcast.cn"
-        # 2. 准备 HTML 格式正文
+        # subject, message, from_email, recipient_list,
+        subject = '美多商城激活邮件' # 主题
+        message = "" # 邮件内容
+        from_email = '美多商城<mimwawilee@163.com>' # 发件人
+        # recipient_list, 收件人列表
+        recipient_list = ['mimwawilee@163.com']
+
+        # 邮件的内容如果是 html 这个时候使用 html_message
+        # 4.1 对a标签的连接数据进行加密处理
+        # user_id=1
         from apps.users.utils import generic_email_verify_token
         token = generic_email_verify_token(request.user.id)
-        # 生成加密数据
-        html_message = "点击按钮进行激活 <a href='http://www.itcast.cn/?token=%s'>激活</a>"%token
-        from_email = "美多商城<mimwawilee@163.com>"
-        recipient_list = ["mimwawilee@163.com"]
 
-        send_mail(
+        verify_url = "http://www.meiduo.site:8080/success_verify_email.html?token=%s" % token
+        # 4.2 组织我们的激活邮件
+        html_message = '<p>尊敬的用户您好！</p>' \
+                       '<p>感谢您使用美多商城。</p>' \
+                       '<p>您的邮箱为：%s 。请点击此链接激活您的邮箱：</p>' \
+                       '<p><a href="%s">%s<a></p>' % (email, verify_url, verify_url)
+
+        # html_message="点击按钮进行激活 <a href='http://www.itcast.cn/?token=%s'>激活</a>"%token
+
+        # send_mail(subject=subject,
+        #           message=message,
+        #           from_email=from_email,
+        #           recipient_list=recipient_list,
+        #           html_message=html_message)
+        from celery_tasks.email.tasks import celery_send_email
+        celery_send_email.delay(
             subject=subject,
-            message=message,  # 必须有普通的 message
+            message=message,
             from_email=from_email,
             recipient_list=recipient_list,
-            html_message=html_message  # html_message 作为关键字参数传入
+            html_message=html_message
         )
 
-        # 返回响应
+        # 4. 返回响应
         return JsonResponse({'code':0,'errmsg':'ok'})
 
 
