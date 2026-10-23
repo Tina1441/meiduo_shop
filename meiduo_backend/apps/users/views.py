@@ -136,7 +136,7 @@ class LoginView(View):
 
        response = JsonResponse({'code':0,'errmsg':'ok'})
        # 为了首页显示用户信息
-       response.set_cookie('username',username)
+       response.set_cookie('username',username,max_age=timedelta(days=7))
 
 
        return response
@@ -154,7 +154,13 @@ class LogOutView(View):
 from utils.views import LoginRequiredJSONMixin
 class CenterView(LoginRequiredJSONMixin, View):
     def get(self,request):
-        return JsonResponse({'code':0,'errmsg':'ok'})
+        info_data = {
+            "username": request.user.username, #request.user 就是已经登陆的用户信息
+            "email": request.user.email,
+            "mobile": request.user.mobile,
+            "email_active": request.user.email_active,
+        }
+        return JsonResponse({'code':0,'errmsg':'ok',"info_data":info_data})
 
 
 
