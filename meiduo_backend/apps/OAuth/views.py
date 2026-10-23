@@ -153,9 +153,9 @@ class OAuthQQView(View):
         try:
             qquser = OAuthQQUser.objects.get(openid=openid)
         except OAuthQQUser.DoesNotExist:
-            # from apps.OAuth.utils import generic_openid
-            # access_token = generic_openid(openid)
-            response =  JsonResponse({'code':400,'access_token':openid})
+            from apps.OAuth.utils import generic_openid
+            access_token = generic_openid(openid)
+            response =  JsonResponse({'code':400,'access_token':access_token})
             return response
         else:
             login(request, qquser.user)
@@ -167,10 +167,6 @@ class OAuthQQView(View):
             return response
 
 
-
-
-        # 5. 如果没有绑定过，则需要绑定
-        # 6. 如果绑定过，则直接登录
 
         pass
 
@@ -189,13 +185,13 @@ class OAuthQQView(View):
         mobile=data.get('mobile')
         password=data.get('password')
         sms_code=data.get('sms_code')
-        openid=data.get('access_token')
+        access_token=data.get('access_token')
 
         # 添加对 access-token 解密
-        # from apps.OAuth.utils import check_access_token
-        # openid=check_access_token(access_token)
-        # if openid is None:
-        #     return JsonResponse({'code':400,'errmsg':'参数缺失'})
+        from apps.OAuth.utils import check_access_token
+        openid=check_access_token(access_token)
+        if openid is None:
+            return JsonResponse({'code':400,'errmsg':'参数缺失'})
 
         # 3.根据手机号进行用户信息的查询
         try:

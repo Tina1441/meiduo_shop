@@ -1,5 +1,5 @@
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from meiduo_mall import settings
+from meiduo_backend import settings
 from itsdangerous import BadData,BadTimeSignature,SignatureExpired
 
 #加密
