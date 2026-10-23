@@ -259,7 +259,6 @@ django 项目
 # 5. 根据user_id查询数据
 # 6. 修改数据
 # 7. 返回响应
-
 class EmailVerifyView(View):
     def put(self,request):
         # 1. 接收请求
@@ -274,8 +273,9 @@ class EmailVerifyView(View):
         if not user_id:
             return JsonResponse({'code':400,'errmsg':'参数错误'})
         # 5. 根据user_id查询数据
-        user = User.objects.get(id=user_id)
-        if not user:
+        try:
+            user = User.objects.get(id=user_id)
+        except Exception:
             return JsonResponse({'code':400,'errmsg':'用户不存在'})
         # 6. 修改数据
         user.email_active = True

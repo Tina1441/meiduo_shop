@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "apps.users",
     "apps.verifications",
     "apps.OAuth",
+    "apps.area",
     "corsheaders"
 ]
 
