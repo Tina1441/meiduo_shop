@@ -283,6 +283,50 @@ class EmailVerifyView(View):
         # 7. 返回响应
         return JsonResponse({'code':0,'errmsg':'ok'})
 
+from apps.users.models import Address
+class AddressCreateView(LoginRequiredJSONMixin,View):
+    def post(self,request):
+        # 1. 接受请求
+        data = json.loads(request.body.decode())
+        # 2. 获取参数
+        receiver=data.get('receiver')
+        province_id=data.get('province_id')
+        city_id=data.get('city_id')
+        district_id=data.get('district_id')
+        place=data.get('place')
+        mobile=data.get('mobile')
+        tel=data.get('tel')
+        email=data.get('email')
+        user = request.user
+        # 3. 参数验证
+        # 4. 数据入库
+        address = Address.objects.create(
+            user=user,
+            title=receiver,
+            receiver=receiver,
+            province_id=province_id,
+            city_id=city_id,
+            district_id=district_id,
+            place=place,
+            mobile=mobile,
+            tel=tel,
+            email=email
+        )
+        address_dict = {
+            'id':address.id,
+            "title": address.title,
+            "receiver": address.receiver,
+            "province": address.province.name,
+            "city": address.city.name,
+            "district": address.district.name,
+            "place": address.place,
+            "mobile": address.mobile,
+            "tel": address.tel,
+            "email": address.email
+        }
+        # 5. 返回响应
+        return JsonResponse({'code':0,'errmsg':'ok','address':address_dict})
+
 
 
 
