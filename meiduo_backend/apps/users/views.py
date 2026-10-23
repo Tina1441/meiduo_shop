@@ -252,6 +252,37 @@ django 项目
 3. 调用  send_mail 方法
 """
 
+# 1. 接收请求
+# 2，获取参数
+# 3. 验证参数
+# 4. 获取user_id
+# 5. 根据user_id查询数据
+# 6. 修改数据
+# 7. 返回响应
+
+class EmailVerifyView(View):
+    def put(self,request):
+        # 1. 接收请求
+        token = request.GET.get('token')
+        # 2，获取参数
+        # 3. 验证参数
+        if not token:
+            return JsonResponse({'code':400,'errmsg':'参数缺失'})
+        # 4. 获取user_id
+        from apps.users.utils import check_verify_token
+        user_id = check_verify_token(token)
+        if not user_id:
+            return JsonResponse({'code':400,'errmsg':'参数错误'})
+        # 5. 根据user_id查询数据
+        user = User.objects.get(id=user_id)
+        if not user:
+            return JsonResponse({'code':400,'errmsg':'用户不存在'})
+        # 6. 修改数据
+        user.email_active = True
+        user.save()
+        # 7. 返回响应
+        return JsonResponse({'code':0,'errmsg':'ok'})
+
 
 
 
