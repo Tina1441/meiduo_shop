@@ -155,12 +155,37 @@ from utils.views import LoginRequiredJSONMixin
 class CenterView(LoginRequiredJSONMixin, View):
     def get(self,request):
         info_data = {
-            "username": request.user.username, #request.user 就是已经登陆的用户信息
+            "username": request.user.username, #request.user  来源于中间件 就是已经登陆的用户信息 不是登录用户 则是匿名用户
             "email": request.user.email,
             "mobile": request.user.mobile,
             "email_active": request.user.email_active,
         }
         return JsonResponse({'code':0,'errmsg':'ok',"info_data":info_data})
+
+
+'''
+1. 保存邮箱地址 2. 发送激活邮件 3.用户激活邮件
+'''
+
+class EmailView(LoginRequiredJSONMixin,View):
+    def put(self,request):
+        # 获取邮箱
+        data = json.loads(request.body.decode())
+        email = data.get('email')
+        # 验证邮箱
+        if not re.match("^[a-z0-9][\w\.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$",email):
+            return JsonResponse({'code':400,'errmsg':'邮箱格式不正确'})
+        # 保存邮箱
+        user = request.user
+        user.email = email
+        user.save()
+        # 发送激活邮件
+        # 返回响应
+        return JsonResponse({'code':0,'errmsg':'ok'})
+
+
+
+
 
 
 
