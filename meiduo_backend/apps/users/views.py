@@ -185,7 +185,10 @@ class EmailView(LoginRequiredJSONMixin,View):
         # 1. 准备纯文本正文（给不支持HTML的邮箱看）
         message = "尊敬的用户，请点击以下链接激活账号：http://www.itcast.cn"
         # 2. 准备 HTML 格式正文
-        html_message = "点击按钮进行激活 <a href='http://www.itcast.cn'>激活</a>"
+        from apps.users.utils import generic_email_verify_token
+        token = generic_email_verify_token(request.user.id)
+        # 生成加密数据
+        html_message = "点击按钮进行激活 <a href='http://www.itcast.cn/?token=%s'>激活</a>"%token
         from_email = "美多商城<mimwawilee@163.com>"
         recipient_list = ["mimwawilee@163.com"]
 
