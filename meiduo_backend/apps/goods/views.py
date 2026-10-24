@@ -27,6 +27,8 @@ from tkinter.constants import PAGES
 
 from django.shortcuts import render
 from django.views import View
+from haystack.views import SearchView
+
 from utils.goods import get_categories,get_breadcrumb
 from apps.contents.models import ContentCategory
 from django.http import JsonResponse
@@ -173,6 +175,26 @@ class hotView(View):
  我们是借助于 haystack 来对接 elasticsearch
  所以 haystack 可以帮助我们 查询数据
 """
+class SKUSearchView(SearchView):
+
+    def create_response(self):
+        # 获取搜索的结果
+        context = self.get_context()
+        # 我们该如何知道里边有什么数据呢？？？
+        # 添加断点来分析
+        sku_list=[]
+        for sku in context['page'].object_list:
+            sku_list.append({
+                'id':sku.object.id,
+                'name':sku.object.name,
+                'price': sku.object.price,
+                'default_image_url': sku.object.default_image.url,
+                'searchkey': context.get('query'),
+                'page_size': context['page'].paginator.num_pages,
+                'count': context['page'].paginator.count
+            })
+
+        return JsonResponse(sku_list,safe=False)
 
 
 
