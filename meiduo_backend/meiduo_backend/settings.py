@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     "apps.area",
     "apps.goods",
     "apps.contents",
-    "corsheaders"
+    "corsheaders",
+    "haystack"
 ]
 
 MIDDLEWARE = [
@@ -252,3 +253,15 @@ EMAIL_HOST_PASSWORD = 'TKStwzWrcDGw7mq5'
 
 ##########自定义文件存储类########
 DEFAULT_FILE_STORAGE = 'utils.fastdfs.storage.MyStorage'
+
+
+#########ES的配置#################
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': 'http://192.168.95.1:9200/',
+        'INDEX_NAME': 'meiduo',
+    },
+}
+# 设置搜索 每页返回的记录条数
+HAYSTACK_SEARCH_RESULTS_PER_PAGE = 5
