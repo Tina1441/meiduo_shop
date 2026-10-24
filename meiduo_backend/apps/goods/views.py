@@ -108,4 +108,27 @@ class ListView(View):
 
         return JsonResponse({'code': 0, 'errmsg': 'ok', 'list': goods_dict, 'count': count, 'breadcrumb': breadcrumb})
 
+# 1. 获取请求参数
+# 2. 根据category_id查询category
+# 3. 根据category查询sku，按照销量排序
+# 4. 格式化响应skus列表
+# 5. 返回响应
+class hotView(View):
+    def get(self, request, category_id):
+        skus = SKU.objects.filter(category_id=category_id,is_launched=True).order_by('-sales')
+        hot_skus = []
+        for sku in skus:
+            hot_skus.append({
+                'id': sku.id,
+                'name': sku.name,
+                'price': sku.price,
+                'default_image_url': sku.default_image.url,
+                'sales': sku.sales
+            })
+
+        return JsonResponse({'code': 0, 'errmsg': 'ok', 'hot_skus': hot_skus})
+
+
+
+
 
