@@ -23,10 +23,13 @@
 # {'Group name': 'group1', 'Remote file_id': 'group1\\M00/00/00/wKhBA2rcFb-ACgVuAAJXemwU4Js493.jpg', 'Status': 'Upload successed.', 'Local file name': 'D:\\Docker\\images\\a.jpg', 'Uploaded size': '149.00KB', 'Storage IP': '127.0.0.1'}
 # """
 # # 获取field_id upload上传成功后有字典返回
+from tkinter.constants import PAGES
+
 from django.shortcuts import render
 from django.views import View
-from utils.goods import get_categories
+from utils.goods import get_categories,get_breadcrumb
 from apps.contents.models import ContentCategory
+from django.http import JsonResponse
 
 class indexView(View):
     def get(self, request):
@@ -68,8 +71,41 @@ class indexView(View):
         5.查询分类对应的sku数据，然后排序，然后分页
         6.返回响应
 """
+from apps.goods.models import GoodsCategory,SKU
+from django.core.paginator import Paginator
 class ListView(View):
-    def get(self, request):
-        pass
+    def get(self, request, category_id):
+        # 1.接收参数
+        page = request.GET.get('page')
+        page_size = request.GET.get('page_size')
+        ordering = request.GET.get('ordering')
+        # 2.获取分类id
+        # 3.根据分类id进行分类数据的查询验证
+        try:
+            category = GoodsCategory.objects.get(id=category_id)
+        except:
+            return JsonResponse({'code':400,'errmsg':'参数缺失'})
+        # 4.获取面包屑数据
+        breadcrumb = get_breadcrumb(category)
+        # 5.查询分类对应的sku数据，然后排序，然后分页
+        goods = SKU.objects.filter(category=category,is_launched=True).order_by(ordering)
+        # 分页
+        pages_goods = Paginator(goods, page_size)
+
+        per_goods = pages_goods.page(page)
+        goods_dict = []
+        for good in per_goods.object_list:
+            goods_dict.append({
+                'id': good.id,
+                'name': good.name,
+                'price': good.price,
+                'default_image_url': good.default_image.url
+            })
+
+        count = pages_goods.count
+
+        # 6.返回响应
+
+        return JsonResponse({'code': 0, 'errmsg': 'ok', 'list': goods_dict, 'count': count, 'breadcrumb': breadcrumb})
 
 
