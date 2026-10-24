@@ -29,7 +29,7 @@ from django.shortcuts import render
 from django.views import View
 from haystack.views import SearchView
 
-from utils.goods import get_categories,get_breadcrumb
+from utils.goods import get_categories,get_breadcrumb,get_goods_specs
 from apps.contents.models import ContentCategory
 from django.http import JsonResponse
 
@@ -195,6 +195,32 @@ class SKUSearchView(SearchView):
             })
 
         return JsonResponse(sku_list,safe=False)
+
+
+#############详情页面展示#############
+class DetailView(View):
+    def get(self, request, sku_id):
+        try:
+            sku = SKU.objects.get(id=sku_id)
+        except:
+            pass
+        # 1. 分类数据
+        categories = get_categories()
+        # 2. 面包屑
+        breadcrumb = get_breadcrumb(sku.category)
+        # 3. sku
+        # 4. 规格数据
+        goods_specs = get_goods_specs(sku)
+
+        context = {
+
+            'categories': categories,
+            'breadcrumb': breadcrumb,
+            'sku': sku,
+            'specs': goods_specs,
+
+        }
+        return render(request, 'detail.html', context)
 
 
 
