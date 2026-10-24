@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     "apps.verifications",
     "apps.OAuth",
     "apps.area",
+    "apps.goods",
+    "apps.contents",
     "corsheaders"
 ]
 
@@ -246,3 +248,7 @@ EMAIL_PORT = 25
 EMAIL_HOST_USER = 'mimwawilee@163.com'
 #在邮箱中设置的客户端授权密码
 EMAIL_HOST_PASSWORD = 'TKStwzWrcDGw7mq5'
+
+
+##########自定义文件存储类########
+DEFAULT_FILE_STORAGE = 'utils.fastdfs.storage.MyStorage'

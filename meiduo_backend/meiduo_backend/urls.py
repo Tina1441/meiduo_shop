@@ -54,5 +54,6 @@ urlpatterns = [
        path("", include("apps.verifications.urls")),
        path("",include("apps.OAuth.urls")),
        path("",include("apps.area.urls")),
+       path("",include("apps.goods.urls")),
 
 ]
