@@ -73,7 +73,7 @@ class indexView(View):
         5.查询分类对应的sku数据，然后排序，然后分页
         6.返回响应
 """
-from apps.goods.models import GoodsCategory,SKU
+from apps.goods.models import GoodsCategory, SKU, GoodsVisitCount
 from django.core.paginator import Paginator
 class ListView(View):
     def get(self, request, category_id):
@@ -221,6 +221,39 @@ class DetailView(View):
 
         }
         return render(request, 'detail.html', context)
+
+
+
+##########商品分类访问量##########
+
+"""
+1. 获取分类id参数
+2. 根据分类id查询分类
+3. 根据分类和查询GoodsVist表，看当天有没有：
+ 存在则count+1 
+  不存在则创建
+4. 返回响应
+"""
+from apps.goods.models import GoodsVisitCount
+from datetime import date
+class CategoryVisitCountView(View):
+    def post(self, request, category_id):
+        try:
+            category = GoodsCategory.objects.get(id=category_id)
+        except:
+            return JsonResponse({'code':400,'errmsg':'该商品分类不存在'})
+        try:
+            good_isVisit = GoodsVisitCount.objects.get(category=category,date=date.today())
+        except:
+            good_isVisit = GoodsVisitCount.objects.create(category=category, count=1, date=date.today())
+
+        else:
+            good_isVisit.count += 1
+            good_isVisit.save()
+
+        return JsonResponse({'code':0,'errmsg':'ok'})
+
+
 
 
 
