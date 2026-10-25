@@ -89,13 +89,16 @@ class CartsView(View):
         if user.is_authenticated:
             # 3.1 连接redis
             redis_cli = get_redis_connection('carts')
+
+            pipeline = redis_cli.pipeline()
             # 3.2 操作hash
             # redis_cli.hset(key,field,value)
             # 直接让 Redis 帮你在原数量上做累加，连查询的步骤都省了！
-            redis_cli.hincrby('carts_%s' % user.id, sku_id, count)
+            pipeline.hincrby('carts_%s' % user.id, sku_id, count)
             # 3.3 操作set
             # 默认就是选中
-            redis_cli.sadd('selected_%s' % user.id, sku_id)
+            pipeline.sadd('selected_%s' % user.id, sku_id)
+            pipeline.execute()
             # 4. 返回响应
             return JsonResponse({'code': 0, 'errmsg': 'ok'})
         # 用户不存在
@@ -151,8 +154,14 @@ class CartsView(View):
         user = request.user
         if user.is_authenticated:
             redis_cli = get_redis_connection('carts')
-            sku_id_count = redis_cli.hgetall('carts_%s' % user.id)
-            selected_ids = redis_cli.smembers('selected_%s' % user.id)
+            pipeline = redis_cli.pipeline()
+            pipeline.hgetall('carts_%s' % user.id)
+            pipeline.smembers('selected_%s' % user.id)
+
+            result = pipeline.execute()
+            sku_id_count = result[0]
+            selected_ids = result[1]
+
 
             carts = {}
 
@@ -209,11 +218,14 @@ class CartsView(View):
         if request.user.is_authenticated:
             user_id = request.user.id
             redis_cli = get_redis_connection('carts')
-            redis_cli.hset('carts_%s' % user_id, sku_id, count)
+            pipeline = redis_cli.pipeline()
+            pipeline.hset('carts_%s' % user_id, sku_id, count)
             if selected:
-                redis_cli.sadd('selected_%s' % user_id, sku_id)
+                pipeline.sadd('selected_%s' % user_id, sku_id)
             else:
-                redis_cli.srem('selected_%s' % user_id, sku_id)
+                pipeline.srem('selected_%s' % user_id, sku_id)
+
+            pipeline.execute()
 
             return JsonResponse({'code':0,'errmsg':'ok','cart_sku':{'count':count,'selected':selected}})
 
@@ -249,8 +261,10 @@ class CartsView(View):
             return JsonResponse({'code':400, 'errmsg':'商品不存在'})
         if request.user.is_authenticated:
             redis_cli = get_redis_connection('carts')
-            redis_cli.hdel('carts_%s' % request.user.id, sku_id)
-            redis_cli.srem('selected_%s' % request.user.id, sku_id)
+            pipeline = redis_cli.pipeline()
+            pipeline.hdel('carts_%s' % request.user.id, sku_id)
+            pipeline.srem('selected_%s' % request.user.id, sku_id)
+            pipeline.execute()
             return JsonResponse({'code':0,'errmsg':'ok'})
         else:
             cookie_carts = request.COOKIES.get('carts')
