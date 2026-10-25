@@ -4,6 +4,9 @@ import json
 from datetime import timedelta
 import re
 from django.contrib.auth import logout
+
+from apps.goods.models import SKU
+
 # Create your views here.
 
 '''
@@ -352,6 +355,67 @@ class AddressView(LoginRequiredJSONMixin,View):
             })
         # 3.返回响应
         return JsonResponse({'code':0,'errmsg':'ok','addresses':address_list})
+"""
+1.定义字段 user_id,sku_id,顺序（时间）
+2. 存储在redis中 hset 
+   key 就是user_id 值就是 （sku_id,...）时间顺序
+   
+   
+1. 用戶登錄判斷
+2. 连接redis
+3. 去重
+4. 向列表左侧加入数据
+5. 只筛选5个
+3. 返回响应
+"""
+from django_redis import get_redis_connection
+class UserHistoryView(LoginRequiredJSONMixin,View):
+    def post(self,request):
+        user = request.user
+        # 1. 接收请求
+        data=json.loads(request.body.decode())
+        # 2. 获取请求参数
+        sku_id=data.get('sku_id')
+        # 3. 验证参数
+        try:
+            sku=SKU.objects.get(id=sku_id)
+        except SKU.DoesNotExist:
+            return JsonResponse({'code':400,'errmsg':'没有此商品'})
+
+        # 4.连接redis
+        redis_cli = get_redis_connection('history')
+        # 5. 去重
+        # redis_cli.lrem(name, count, value)
+        # count > 0（正数）：从头部向尾部（从左到右）搜索，最多删除 count 个等于 value 的元素。
+        # count < 0（负数）：从尾部向头部（从右到左）搜索，最多删除绝对值 |count| 个等于 value 的元素。
+        # count = 0（零）：删除表中所有等于 value 的元素。
+        redis_cli.lrem('history_%s' % user.id, 0, sku_id)
+        # 6. 保存redis
+        redis_cli.lpush('history_%s' % user.id, sku_id)
+        # 7. 只保存五条记录（前端没有做分页）
+        redis_cli.ltrim('history_%s' % user.id, 0,4)
+        # 8. 返回响应
+        return JsonResponse({'code':0,'errmsg':'ok'})
+
+    def get(self,request):
+        # 1. 连接redis
+        redis_cli = get_redis_connection('history')
+        # 2. 根据用户id查询redis
+        ids = redis_cli.lrange('history_%s' % request.user.id,0,4)
+        # 3. 格式化数据
+        history_list = []
+        for id in ids:
+            sku = SKU.objects.get(id=id)
+            history_list.append({
+                'id':sku.id,
+                'name':sku.name,
+                'default_image_url': sku.default_image.url,
+                'price': sku.price
+            })
+        return JsonResponse({'code':0,'errmsg':'ok','skus':history_list})
+        # 3， 拿到redis中的数据
+        # 4. 返回响应
+
 
 
 
