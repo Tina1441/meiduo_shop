@@ -138,6 +138,10 @@ class LoginView(View):
            request.session.set_expiry(0)  # 浏览器关闭过期
 
        response = JsonResponse({'code':0,'errmsg':'ok'})
+
+       from apps.carts.utils import merge_cookie_to_redis
+       response = merge_cookie_to_redis(request,response)
+
        # 为了首页显示用户信息
        response.set_cookie('username',username,max_age=timedelta(days=7))
 
