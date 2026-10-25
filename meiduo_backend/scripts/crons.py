@@ -15,22 +15,24 @@
 
 """
 # 这个函数 能够帮助我们 数据库查询，渲染HTML页面，然后把渲染的HTML写入到指定文件
+
+import os
+import django
+import sys
+sys.path.insert(0,'../')
+
+# 1. 设置 Django 的配置文件环境变量（请把 'meiduo_backend.settings' 换成你实际的 settings 模块路径）
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'meiduo_backend.settings')
+
+# 2. 手动初始化 Django 环境
+django.setup()
+
 import time
 from utils.goods import get_categories
 from apps.contents.models import ContentCategory
 from meiduo_backend import settings
-import os
-import django
-
-
 
 def generic_meiduo_index():
-    # 1. 设置 Django 的配置文件环境变量（请把 'meiduo_backend.settings' 换成你实际的 settings 模块路径）
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'meiduo_backend.settings')
-
-    # 2. 手动初始化 Django 环境
-    django.setup()
-
     print('--------------%s-------------'%time.ctime())
     # 1.商品分类数据
     categories = get_categories()
@@ -56,7 +58,10 @@ def generic_meiduo_index():
     # 3. 把渲染好的HTML，写入到指定文件
 
     # base_dir 的上一级
-    file_path=os.path.join(os.path.dirname(settings.BASE_DIR),'front_end_pc/index.html')
+    file_path=os.path.join(os.path.dirname(settings.BASE_DIR),'front_end_pc/front_end_pc/index.html')
 
     with open(file_path,'w',encoding='utf-8') as f:
         f.write(index_html_data)
+
+if __name__ == '__main__':
+    generic_meiduo_index()
